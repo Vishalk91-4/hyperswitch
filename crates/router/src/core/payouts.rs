@@ -627,7 +627,7 @@ pub async fn create_recipient(
                     add_external_account_addition_task(
                         &*state.store,
                         payout_data,
-                        common_utils::date_time::now().saturating_add(time::Duration::seconds(19810)),
+                        common_utils::date_time::now().saturating_add(time::Duration::seconds(20)),
                     )
                     .await
                     .into_report()
@@ -1434,8 +1434,8 @@ pub async fn add_external_account_addition_task(
     payout_data: &PayoutData,
     schedule_time: time::PrimitiveDateTime,
 ) -> Result<(), ProcessTrackerError> {
-    let runner = "PAYOUTS";
-    let task = "STRIPE_ATTACH_EXTERNAL_ACCOUNT";
+    let runner = "STRIPE_ATTACH_ACCOUNT";
+    let task = "ATTACH_ACCOUNT_WORKFLOW";
     let process_tracker_id = pt_utils::get_process_tracker_id(
         runner,
         task,

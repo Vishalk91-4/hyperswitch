@@ -47,11 +47,28 @@ impl ProcessTrackerWorkflow<AppState> for StripeAttachExternalAccountWorkflow {
         let mut payout_data =
             payouts_core::make_payout_data(state, &merchant_account, &key_store, &request).await?;
 
+        // Fetch payout method data
+        payout_data.payout_method_data = Some(
+            payouts_core::helpers::make_payout_method_data(
+                &state,
+                None,
+                payout_data.payout_attempt.payout_token.as_deref(),
+                &payout_data.payout_attempt.customer_id,
+                &payout_data.payout_attempt.merchant_id,
+                &payout_data.payout_attempt.payout_id,
+                Some(&payout_data.payouts.payout_type),
+            )
+            .await?
+            .get_required_value("payout_method_data")?,
+        );
+
+        // Form connector data
         let routed_through = Some(payout_data.payout_attempt.connector.to_owned());
         let connector_data =
             payouts_core::get_connector_data(state, &merchant_account, routed_through, None)
                 .await?;
-        logger::info!("ABCDEFGASDHJGBYDUJSHGFUYDJSGFUIDSGHIUDSGHDUI");
+
+        logger::info!("CREATING RECIPIENT'S ACCOUNT");
         // 1. Attach recipient's external accounts
         payouts_core::create_recipient_account(
             state,
@@ -63,6 +80,7 @@ impl ProcessTrackerWorkflow<AppState> for StripeAttachExternalAccountWorkflow {
         .await?;
 
         // 2. Create payout
+        logger::info!("CREATING PAYOUT");
         payouts_core::create_payout(
             state,
             &merchant_account,
@@ -73,6 +91,7 @@ impl ProcessTrackerWorkflow<AppState> for StripeAttachExternalAccountWorkflow {
         .await?;
 
         // 3. Fulfill payout
+        logger::info!("FULFILLING PAYOUT");
         payouts_core::fulfill_payout(
             state,
             &merchant_account,

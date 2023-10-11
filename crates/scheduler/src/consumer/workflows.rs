@@ -4,6 +4,8 @@ pub use diesel_models::process_tracker as storage;
 
 use crate::{db::process_tracker::ProcessTrackerExt, errors, SchedulerAppState};
 
+use crate::env::logger;
+
 pub type WorkflowSelectorFn =
     fn(&storage::ProcessTracker) -> Result<(), errors::ProcessTrackerError>;
 
@@ -27,6 +29,7 @@ pub trait ProcessTrackerWorkflows<T>: Send + Sync {
         T: SchedulerAppState,
     {
         let app_state = &state.clone();
+        logger::info!("EXECUTING WORKFLOWSSSSS!!!");
         let output = operation.execute_workflow(app_state, process.clone()).await;
         match output {
             Ok(_) => operation.success_handler(app_state, process).await,
